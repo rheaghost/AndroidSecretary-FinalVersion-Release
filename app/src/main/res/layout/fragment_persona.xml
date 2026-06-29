@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SELECT SECRETARY PERSONA"
+        android:textColor="#00FF41"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/persona_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="20dp">
+
+        <!-- ✅ NEW: DEFAULT RADIO BUTTON (First, so it's selected by default) -->
+        <RadioButton
+            android:id="@+id/radio_default"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Default\n(General Purpose Assistant)"
+            android:textColor="#00FF41"
+            android:textSize="14sp"
+            android:paddingStart="12dp"
+            android:layout_marginBottom="12dp"
+            android:drawableStart="@drawable/default_avatar"
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical" />
+
+        <RadioButton
+            android:id="@+id/radio_bomi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bomi\n(Accounting Expert)"
+            android:textColor="#00FF41"
+            android:textSize="14sp"
+            android:paddingStart="12dp"
+            android:layout_marginBottom="12dp"
+            android:drawableStart="@drawable/bomi_avatar"
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical" />
+        <RadioButton
+            android:id="@+id/radio_somi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Somi\n(General marketing/sales)"
+            android:textColor="#00FF41"
+            android:textSize="14sp"
+            android:paddingStart="12dp"
+            android:layout_marginBottom="12dp"
+            android:drawableStart="@drawable/somi_avatar"
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical" />
+
+        <RadioButton
+            android:id="@+id/radio_rhea"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rhea\n(Ethereal Ghostly Librarian)"
+            android:textColor="#00FF41"
+            android:textSize="14sp"
+            android:paddingStart="12dp"
+            android:drawableStart="@drawable/rhea_avatar"
+            android:drawablePadding="16dp"
+            android:gravity="center_vertical" />
+    </RadioGroup>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ACTIVE SYSTEM PROMPT"
+        android:textColor="#004411"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/txt_current_prompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1E1E1E"
+        android:padding="12dp"
+        android:textColor="#00FF41"
+        android:textSize="12sp"
+        android:text="Select a persona to load system prompt..."/>
+
+</LinearLayout>
