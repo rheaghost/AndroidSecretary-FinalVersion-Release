@@ -761,7 +761,22 @@ public class MainActivity extends AppCompatActivity {
         }); }  //if chathistoryview null txtAiOutput 2601221813
 
         //enbd long press
+         //empty address problem 26062923
+        // 🔥 FIX: Load or set default target IP
+        // ==========================================
+        prefs = getSharedPreferences("SecretaryPrefs", MODE_PRIVATE);
 
+        // Try to load the saved IP, or use the default
+        currentTargetIp = prefs.getString("target_ip", "192.168.0.7");
+
+        // Also set the base URL
+        if (currentBaseUrl == null || currentBaseUrl.isEmpty()) {
+            currentBaseUrl = "http://" + currentTargetIp + ":11434";
+        }
+
+        // Log the loaded address for debugging
+        android.util.Log.i("SOVEREIGN_LINK", "📍 Loaded target IP: " + currentTargetIp);
+        android.util.Log.i("SOVEREIGN_LINK", "📍 Loaded base URL: " + currentBaseUrl);
 
 
     }//onCreate
@@ -1176,6 +1191,16 @@ public class MainActivity extends AppCompatActivity {
 
     //runAILogic new
     private void runAILogic(String userPrompt) {
+        //empty ip address null error check 26062923
+        // ==========================================
+        if (currentTargetIp == null || currentTargetIp.isEmpty()) {
+            // Try loading from preferences again
+            SharedPreferences prefs = getSharedPreferences("SecretaryPrefs", MODE_PRIVATE);
+            currentTargetIp = prefs.getString("target_ip", "192.168.0.7");
+            currentBaseUrl = "http://" + currentTargetIp + ":11434";
+            android.util.Log.w("SOVEREIGN_LINK", "⚠️ Re-loaded target IP: " + currentTargetIp);
+        }
+
         // 1. Record Start Time for TPS calculation
         long startTime = System.currentTimeMillis();  //position OK 2601172226
         //for runpod and pi 5  2601162338
