@@ -126,3 +126,19 @@ A project license will be added in a future update.
 This project would not be possible without the open-source AI community and the developers behind projects such as Ollama, LLaVA, Android, and many other open-source libraries that make local AI development possible.
 
 Thank you to everyone who contributes ideas, feedback, bug reports, and code.
+
+
+
+About Me
+
+I'm an independent developer with interests in artificial intelligence, embedded systems, robotics, computer vision, and Android development. I enjoy building practical prototypes that combine software, hardware, and local AI into working systems.
+
+My projects focus on privacy, offline capability, and experimentation with emerging AI technologies. Rather than relying entirely on cloud services, I'm interested in exploring how modern AI models can run locally on consumer hardware and mobile devices.
+
+Recent work includes AndroidSecretary-FinalVersion-Release, a proof-of-concept offline AI secretary for Android featuring local chat with Ollama, camera understanding through LLaVA, voice input and output, multiple assistant personas, and persistent chat history.
+
+In addition to AI applications, I work on embedded systems, ESP32/ESP8266 projects, IoT monitoring, sensor integration, and robotics concepts. I also enjoy documenting my work and publishing open-source repositories so others can learn from, improve, or build upon them.
+
+I believe that working prototypes are valuable starting points for collaboration. If you're interested in Android, local AI, embedded systems, or privacy-focused software, I welcome feedback, bug reports, ideas, and pull requests.
+
+My GitHub repositories are open for exploration, and I hope they serve as a foundation for future development by both myself and the wider open-source communit
