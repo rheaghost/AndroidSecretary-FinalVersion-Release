@@ -7,7 +7,7 @@ android {
     compileSdk 36
 
     defaultConfig {
-        applicationId "com.example.aisecretary4b"
+        applicationId "com.example.aisecretary4btest"
         minSdk 27
         targetSdk 36
         versionCode 1
@@ -29,6 +29,7 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation libs.appcompat
     implementation libs.material

@@ -74,7 +74,7 @@ public class SecretaryDbHelper extends SQLiteOpenHelper {
 
     //@Override
     //public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Since version is 1 and database name is fresh, no upgrade routine needed yet.
+    // Since version is 1 and database name is fresh, no upgrade routine needed yet.
     //}
 
     public void wipeHistory() {

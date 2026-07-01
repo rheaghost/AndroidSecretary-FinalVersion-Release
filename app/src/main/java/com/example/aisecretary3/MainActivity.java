@@ -1,8 +1,11 @@
 package com.example.aisecretary3;
-
+// PROJECT CONCLUDED 2607011430 KST
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
 //ok hotspot dhcp works and you can offline 2606142037
+import android.database.sqlite.SQLiteDatabase;
+import android.content.ContentValues;
+//26062919
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -17,6 +20,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -54,6 +58,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;//Step 4 ok 26062919
+
 import androidx.viewpager2.widget.ViewPager2;
 
 import java.io.File;
@@ -72,6 +79,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 //these three required for simpledataformat 2601090220
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -104,6 +112,7 @@ import android.widget.Toast;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+//import com.itextpdf.kernel.pdf.PdfReader;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -165,7 +174,8 @@ public class MainActivity extends AppCompatActivity {
     public String selectedModel="smollm2:latest";
     //default model is smollm2:latest to faciliktate outdoor showing 2606240836
     // Top of MainActivity.java  now public for communication with fragments 2601222319
-    public TextView chatHistoryView;
+    public static TextView chatHistoryView;//staic 26063001
+
     public ImageButton btnScrollDown;
     public String currentTarget = "PC";
     public boolean isRunPodMode = false;
@@ -203,8 +213,8 @@ public class MainActivity extends AppCompatActivity {
     //private String selectedModel = "llama3"; // Default
     //public String selectedModel = "llama3"; // Default  changed to public for savetabfragemnt local selection 2606112143
 
-        // List of models you have in Ollama
-    String[] models = {"llama3", "phi3", "mistral", "gemma","smollm2"};//smollm2 added here for offline local mode 2606141637
+    // List of models you have in Ollama
+    String[] models = {"llama3", "phi3", "mistral", "gemma","smollm2","llava"};//smollm2 added here for offline local mode 2606141637 //lava added 2606300044
 
     private OkHttpClient client;  //moved to global 2601132123
 
@@ -248,6 +258,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // In onCreate(), after setContentView()
         //statusbar 260629
+
+        //check for mpermissions 2606292347
+        checkPermissions();
 
 
 
@@ -347,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
         //hide search area initially
         LinearLayout searchArea = findViewById(R.id.search_area);
 
-         //for destination ip setting 26011672306
+        //for destination ip setting 26011672306
         prefs = getSharedPreferences("SecretaryPrefs", MODE_PRIVATE);
         // Load the last used IP, or use the default if it's the first time
         currentTargetIp = prefs.getString("target_ip", "192.168.0.7");
@@ -371,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         if(chatHistoryView!=null){
-        chatHistoryView.setMovementMethod(new ScrollingMovementMethod()); } //from txtAiOutput  2601221808
+            chatHistoryView.setMovementMethod(new ScrollingMovementMethod()); } //from txtAiOutput  2601221808
 
 
         runBtn.setOnClickListener(v -> {
@@ -391,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
                 //String userPrompt = chatInput.getText().toString();
                 //appendTextToFile("USER (" + this.activeAvatar + ")", userMsg);
 
-                 runAILogic(userMsg);//This now calls your PC!
+                runAILogic(userMsg);//This now calls your PC!
 
                 // Option B: Mock Run (use this to test the UI)
                 //simulateAiResponse(userMsg);
@@ -462,7 +475,7 @@ public class MainActivity extends AppCompatActivity {
         // you can try adding Korean as a secondary language hint
         speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
         // Optional: If you talk about K-Pop or specific Korean names often,
-         // you can try adding Korean as a secondary language hint
+        // you can try adding Korean as a secondary language hint
         //speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ko-KR");
 
         btnMic.setOnClickListener(v -> {
@@ -503,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         //end mic related
-         //mic permission popup
+        //mic permission popup
         // Check for Microphone Permission at startup
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -603,8 +616,72 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //end search past chat functionality
+        //textwatchr
 
         //textwatcher
+        //camera button 26062923
+
+        // In onCreate(), after finding other views
+        /*
+        ImageButton btnCamera = findViewById(R.id.btn_camera);
+        btnCamera.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CameraCaptureActivity.class);
+            multimodalLauncher.launch(intent);
+        });
+        //
+       */
+
+
+
+
+
+/*
+
+
+        ImageButton btnCamera = findViewById(R.id.btn_camera);
+        btnCamera.setOnClickListener(v -> {
+            Toast.makeText(MainActivity.this, "Camera button clicked!", Toast.LENGTH_SHORT).show();
+
+            try {
+                Intent intent = new Intent(MainActivity.this, CameraCaptureActivity.class);
+                startActivity(intent);
+            } catch (Exception e) {
+                // Show the actual error
+                String errorMsg = e.getMessage();
+                Toast.makeText(MainActivity.this, "Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                android.util.Log.e("CAMERA_ERROR", "Failed to start camera activity", e);
+
+                // Try a simpler approach - just show a dialog
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Camera Error")
+                        .setMessage("Error: " + errorMsg)
+                        .setPositiveButton("OK", null)
+                        .show();
+            }
+        });
+*/
+        ImageButton btnCamera = findViewById(R.id.btn_camera);
+        btnCamera.setOnClickListener(v -> {
+            Toast.makeText(MainActivity.this, "Camera button clicked!", Toast.LENGTH_SHORT).show();
+
+            try {
+                Intent intent = new Intent(MainActivity.this, CameraCaptureActivity.class);
+                intent.putExtra("current_avatar",activeAvatar);//pass the current avatar
+
+                startActivityForResult(intent, 100); // 100 is the request code
+                //startActivity(intent);  //ue this not the bove 29063019
+            } catch (Exception e) {
+                String errorMsg = e.getMessage();
+                Toast.makeText(MainActivity.this, "Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                android.util.Log.e("CAMERA_ERROR", "Failed to start camera activity", e);
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Camera Error")
+                        .setMessage("Error: " + errorMsg)
+                        .setPositiveButton("OK", null)
+                        .show();
+            }
+        });
+
 
         editMsg.addTextChangedListener(new android.text.TextWatcher() {
             @Override
@@ -729,13 +806,13 @@ public class MainActivity extends AppCompatActivity {
         //chatHistoryText->txtAIOutput
         //copy to chatfragment 2601221325   //former txtAiOutput below 2601221809
         if (chatHistoryView != null) {
-        chatHistoryView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            if (scrollY < -100) { // If user scrolled up
-                btnScrollDown.setVisibility(View.VISIBLE);
-            } else {
-                btnScrollDown.setVisibility(View.GONE);
-            }
-        });   }//if chathistoryview!=null 2601222238
+            chatHistoryView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                if (scrollY < -100) { // If user scrolled up
+                    btnScrollDown.setVisibility(View.VISIBLE);
+                } else {
+                    btnScrollDown.setVisibility(View.GONE);
+                }
+            });   }//if chathistoryview!=null 2601222238
 
 
 
@@ -751,17 +828,17 @@ public class MainActivity extends AppCompatActivity {
 
          */
 
-         //moved to chatfragment 2601221344
+        //moved to chatfragment 2601221344
         //long press chathistory to export history to android download folder
         //long press txtAiOutput->chatHistoryView 2601221812
         if(chatHistoryView!=null){
-        chatHistoryView.setOnLongClickListener(v -> {
-            exportHistory();
-            return true;
-        }); }  //if chathistoryview null txtAiOutput 2601221813
+            chatHistoryView.setOnLongClickListener(v -> {
+                exportHistory();
+                return true;
+            }); }  //if chathistoryview null txtAiOutput 2601221813
 
         //enbd long press
-         //empty address problem 26062923
+        //empty address problem 26062923
         // 🔥 FIX: Load or set default target IP
         // ==========================================
         prefs = getSharedPreferences("SecretaryPrefs", MODE_PRIVATE);
@@ -778,6 +855,38 @@ public class MainActivity extends AppCompatActivity {
         android.util.Log.i("SOVEREIGN_LINK", "📍 Loaded target IP: " + currentTargetIp);
         android.util.Log.i("SOVEREIGN_LINK", "📍 Loaded base URL: " + currentBaseUrl);
 
+
+
+        //web button
+        ImageButton btnWeb = findViewById(R.id.btn_web);
+        btnWeb.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Enter URL");
+
+            EditText input = new EditText(this);
+            input.setHint("https://example.com");
+            input.setTextColor(0xFF00FF41);
+            input.setBackgroundColor(0xFF1A1A1A);
+            builder.setView(input);
+
+            builder.setPositiveButton("ANALYZE", (dialog, which) -> {
+                String url = input.getText().toString();
+                if (!url.isEmpty()) {
+                    fetchWebpage(url);
+                }
+            });
+            builder.setNegativeButton("Cancel", null);
+            builder.show();
+        });
+
+        //pdf btn
+
+        ImageButton btnPdf = findViewById(R.id.btn_pdf);
+        btnPdf.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("application/pdf");
+            startActivityForResult(intent, 200);
+        });
 
     }//onCreate
 
@@ -1099,7 +1208,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void saveToDatabase_old(String prompt, String reply) {
+    public void saveToDatabase_old(String prompt, String reply) {  //change to public 26092919
         SecretaryDbHelper dbHelper = new SecretaryDbHelper(this);//dbHelper not db!! db is the database itself 2606230058
 
         // We capture current metrics for the "6-digit" log
@@ -1161,7 +1270,8 @@ public class MainActivity extends AppCompatActivity {
 
     //2606240830  step 2 of postcrash recovery
     //CHOKEPOINT :DB DATABASE 2606240845
-    private void saveToDatabase(String currentRole, String currentAvatar, String prompt, String reply, String model, double tps) {
+    //260629 change to public(for access from chatfragment)
+    public void saveToDatabase(String currentRole, String currentAvatar, String prompt, String reply, String model, double tps) {
         SecretaryDbHelper dbHelper = new SecretaryDbHelper(this);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -1186,7 +1296,7 @@ public class MainActivity extends AppCompatActivity {
 
         db.insert("chat_history", null, values);
         db.close();
-    }
+    }//ok step 6 26062919
 
 
     //runAILogic new
@@ -1295,7 +1405,7 @@ public class MainActivity extends AppCompatActivity {
 
         //add 2606140727
         // 1. Build the network URL payload destination string
-       // String targetUrl;
+        // String targetUrl;
         if (currentTarget.equals("PC") || currentTarget.equals("PI5")) {
             targetUrl = "http://" + currentTargetIp + ":" + port + "/api/chat";
         } else {
@@ -1419,8 +1529,8 @@ public class MainActivity extends AppCompatActivity {
 
                              */
 
-                                statusDisp.setText("STATUS: SERVER ERROR " + autoCloseResponse.code());
-                                if (dot != null) dot.clearAnimation();
+                            statusDisp.setText("STATUS: SERVER ERROR " + autoCloseResponse.code());
+                            if (dot != null) dot.clearAnimation();
 
 
 
@@ -1501,7 +1611,13 @@ public class MainActivity extends AppCompatActivity {
                                 //2606240853
                                 // 2. Append using the normalized display string
                                 chatHistoryView.append("\n[" + time1 + "] Me: " + userPrompt + "\n");
-                                chatHistoryView.append("[" + time1 + "] " + displayModel.toUpperCase() + "(" + activeAvatar + "): " + cleanReply + "\n\n");
+                                //chatHistoryView.append("[" + time1 + "] " + displayModel.toUpperCase() + "(" + activeAvatar + "): " + cleanReply + "\n\n");
+                                //Consistent format: Avatar (Model): message
+                                String displayName = activeAvatar != null ? activeAvatar : "Default";
+                                chatHistoryView.append("[" + time1 + "] " + displayName + " (" + displayModel.toUpperCase() + "): " + cleanReply + "\n\n");
+
+
+
                                 //2606222221
                                 scrollToBottom();
                             }
@@ -1597,7 +1713,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Update the Live Output TextView  //txtAiOutput->chatHistoryView 2601221839
             if(chatHistoryView!=null){
-            chatHistoryView.append("\n[" + time + "] Secretary: " + mockReply);}  //
+                chatHistoryView.append("\n[" + time + "] Secretary: " + mockReply);}  //
 
             // Test the Database Save
             //saveToDatabase(userPrompt, mockReply);  now requires 4 args instead of 2 and this function is not used now 260140001
@@ -1614,6 +1730,11 @@ public class MainActivity extends AppCompatActivity {
 
                 //tts.speak(mockReply, TextToSpeech.QUEUE_FLUSH, null,"ID_" + System.currentTimeMillis());//MockID,SecretaryMsg
                 int speakStatus=tts.speak(phoneticReply, TextToSpeech.QUEUE_FLUSH, null,"ID_" + System.currentTimeMillis());//MockID,SecretaryMsg
+                // This code is already in your exportHistory() method
+                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);  //2602292345
+                if (v != null) {
+                    v.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+                }
                 // Vibrate for 100 milliseconds
                 ((android.os.Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(100);
             }
@@ -1629,7 +1750,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Query the table: Select everything from chat_history
         //Cursor cursor = db.rawQuery("SELECT prompt, response, timestamp FROM chat_history", null);
-       //Cursor cursor = db.rawQuery("SELECT prompt, response, custom_timestamp FROM chat_history", null);//timestamp->custom_timestamp
+        //Cursor cursor = db.rawQuery("SELECT prompt, response, custom_timestamp FROM chat_history", null);//timestamp->custom_timestamp
         // FIXED: Added model_used, avatar_used, and role to the SELECT projection matrix
         Cursor cursor = db.rawQuery("SELECT prompt, response, custom_timestamp, model_used, avatar_used, role FROM chat_history", null);
         //2606230108  it was line 1287 when exception occurred the previous code was hardcoded to timestamp instead of custom_timestamp
@@ -1692,8 +1813,8 @@ public class MainActivity extends AppCompatActivity {
 
                 // CRITICAL FALLBACK: If avatar data is blank or uninitialized, bind your default identity
                 //if (avatar == null || avatar.isEmpty()) {
-                  //  avatar = "Rhea"; // Your baseline ghost maiden persona
-               // }
+                //  avatar = "Rhea"; // Your baseline ghost maiden persona
+                // }
 
                 //2606240835 step 3 of postcrash recovery
                 // Normalize model names on load for consistent UI visual tracking
@@ -1710,10 +1831,16 @@ public class MainActivity extends AppCompatActivity {
                 historyBuilder.append("\n[").append(time).append("] Me: ").append(prompt).append("\n");
 
                 // 2. THE VISUAL CORRECTION: Enforce strict format tracking -> [YYYY-mm-dd hh:mm:ss] Model(avatar): the reply
+                //historyBuilder.append("[").append(time).append("] ")
+                //      .append(model.toUpperCase())
+                //    .append("(").append(avatar).append("): ")
+                //  .append(response).append("\n");
+                // Consistent format: Avatar(Model): message  26062919
                 historyBuilder.append("[").append(time).append("] ")
-                        .append(model.toUpperCase())
-                        .append("(").append(avatar).append("): ")
+                        .append(avatar)
+                        .append(" (").append(model.toUpperCase()).append("): ")
                         .append(response).append("\n");
+
 
             } while (cursor.moveToNext());
 
@@ -1729,7 +1856,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Set the text to the UI  //txtAiOutput->chatHistoryView 2601221851
         if(chatHistoryView!=null){
-        chatHistoryView.setText(historyBuilder.toString());}
+            chatHistoryView.setText(historyBuilder.toString());}  //step 7 ok 26062919
     }//loadhistoryfromdatabase
 
 
@@ -1947,7 +2074,7 @@ public class MainActivity extends AppCompatActivity {
         try (java.io.FileWriter writer = new java.io.FileWriter(file,true)) {//set to append mode 2606091500
             //https://blog.aacii.net/371  g: java file append mode/1
             if(chatHistoryView!=null){
-            writer.write(chatHistoryView.getText().toString());}//txtAIOutput->chatHistoryView 2601221931
+                writer.write(chatHistoryView.getText().toString());}//txtAIOutput->chatHistoryView 2601221931
         } catch (IOException e) {
             // Fail silently in background
         }
@@ -1976,7 +2103,7 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(battReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
 
-     //update destination addr 2601172337
+    //update destination addr 2601172337
     public void updateDestination(String type, String customIp) {
         switch (type) {
             case "PC":
@@ -2059,7 +2186,7 @@ public class MainActivity extends AppCompatActivity {
         String inputAddr = prefs.getString("last_ip", "192.168.0.7").trim();
 
 
-       //changed from /api/generate to /api/chat 2606081115
+        //changed from /api/generate to /api/chat 2606081115
         // DETERMINISTIC FALLBACK: If the saved IP is completely empty, default to Termux localhost
         if (inputAddr.isEmpty()) {
             inputAddr = "127.0.0.1";
@@ -2240,9 +2367,9 @@ public class MainActivity extends AppCompatActivity {
     //file save utility functions
 
     /*
-            * Generates a unique filename for the current chat session using date and time.
-            * Run this ONCE when the app starts or when a new conversation begins.
-            */
+     * Generates a unique filename for the current chat session using date and time.
+     * Run this ONCE when the app starts or when a new conversation begins.
+     */
     public void initializeSessionFile() {
         // Format pattern: YearMonthDay_HourMinuteSecond (e.g., 20260608_223512)
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
@@ -2489,7 +2616,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }//autodiscoverandrunollama 2606162232
 
-   //bulletproof version 2606162342
+    //bulletproof version 2606162342
     private List<String> getDynamicLocalAddresses() {
         List<String> addresses = new ArrayList<>();
         addresses.add("127.0.0.1"); // Always keep the local loopback fallback
@@ -2539,18 +2666,18 @@ public class MainActivity extends AppCompatActivity {
 
         // Write logEntry out to your external/local flat file stream here...
     }
-//2606232003
+    //2606232003
 // 🎯 Call this method when your layout's capture button is pressed
-public void launchCameraCapture() {
-    Intent intent = new Intent(this, CameraCaptureActivity.class);
-    // You can pass configuration variables here if needed
-    intent.putExtra("SYSTEM_PROMPT", "Identify this management component or log this entry.");
-    multimodalLauncher.launch(intent);
-}
+    public void launchCameraCapture() {
+        Intent intent = new Intent(this, CameraCaptureActivity.class);
+        // You can pass configuration variables here if needed
+        intent.putExtra("SYSTEM_PROMPT", "Identify this management component or log this entry.");
+        multimodalLauncher.launch(intent);
+    }
 //2606232012
 
     // 🎯 STUB: This catches the AI data coming back from your capture activity
-    private void saveCaptureToDatabase(String prompt, String response, String modelName) {
+    private void saveCaptureToDatabaseOld(String prompt, String response, String modelName) {
         android.util.Log.i("SOVEREIGN_ENGINE", "📥 Received Multimodal Payload! Model: " + modelName);
 
         // For now, we will pipe this directly into your existing database engine log.
@@ -2566,6 +2693,31 @@ public void launchCameraCapture() {
             android.util.Log.e("SOVEREIGN_ENGINE", "❌ Failed to save capture payload to database", e);
         }
     }//saveCaptureToDatabase
+
+    private void saveCaptureToDatabase(String prompt, String response, String modelName) {
+        android.util.Log.i("SOVEREIGN_ENGINE", "📥 Received Multimodal Payload! Model: " + modelName);
+
+        try {
+            // 🔥 Save to database using the same method as regular chats
+            if (modelName == null || modelName.isEmpty()) {
+                modelName = "llava";
+            }
+
+            saveToDatabase(activeRole, activeAvatar, prompt, response, modelName, 0.0);
+            android.util.Log.d("DATABASE", "✅ Capture saved to database with avatar: " + activeAvatar);
+
+            // Refresh the chat display
+            loadHistoryFromDatabase();
+            scrollToBottom();
+        } catch (Exception e) {
+            android.util.Log.e("SOVEREIGN_ENGINE", "❌ Failed to save capture payload to database", e);
+        }
+    }//new replace  step 1 for multimoal result to db
+
+
+
+
+
 
     //2606232037
     //menu related
@@ -2586,4 +2738,404 @@ public void launchCameraCapture() {
         return super.onOptionsItemSelected(item);
     }
 
+    // In MainActivity.java - Check ALL dangerous permissions at startup  2606292345
+    private void checkPermissions() {
+        String[] permissions = {
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+        };
+
+        List<String> neededPermissions = new ArrayList<>();
+        for (String perm : permissions) {
+            if (ContextCompat.checkSelfPermission(this, perm)
+                    != PackageManager.PERMISSION_GRANTED) {
+                neededPermissions.add(perm);
+            }
+        }
+
+        if (!neededPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    neededPermissions.toArray(new String[0]), 100);
+        }
+    }
+
+    // Call this in onCreate()
+    //checkPermissions();
+
+
+
+
+
+
+  /*
+    @Override
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
+            String aiResponse = data.getStringExtra("AI_CAPTURE_RESULT");
+            String usedModel = data.getStringExtra("AI_USED_MODEL");
+
+            if (aiResponse != null) {
+                // Show toast for verification
+                Toast.makeText(this, "Received: " + aiResponse, Toast.LENGTH_LONG).show();
+
+                // 🔥 Find the ChatFragment by its tag
+                ChatFragment chatFragment = (ChatFragment) getSupportFragmentManager()
+                        .findFragmentByTag("f0"); // "f0" is the tag for position 0 (Chat tab)
+
+                if (chatFragment != null) {
+                    chatFragment.appendCameraResult(aiResponse, usedModel != null ? usedModel : "LLAVA");
+                    android.util.Log.d("CAMERA_RESULT", "✅ Message sent to ChatFragment");
+                } else {
+                    android.util.Log.e("CAMERA_RESULT", "❌ ChatFragment not found!");
+                    Toast.makeText(this, "Error: Chat fragment not available", Toast.LENGTH_SHORT).show();
+                }
+
+                // Save to database
+                saveCaptureToDatabase("📸 Photo", aiResponse, usedModel != null ? usedModel : "llava");
+            }
+        }
+    }
+
+    */
+    //@Override
+    /*
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
+            String aiResponse = data.getStringExtra("AI_CAPTURE_RESULT");
+            String usedModel = data.getStringExtra("AI_USED_MODEL");
+
+            if (aiResponse != null) {
+                Toast.makeText(this, "Received: " + aiResponse, Toast.LENGTH_LONG).show();
+                runOnUiThread(()->{
+                // 🔥 Use the static reference directly
+                if (MainActivity.chatHistoryView != null) {
+                    String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                    MainActivity.chatHistoryView.append("\n[" + time + "] Me: 📸 Photo captured\n");
+                    MainActivity.chatHistoryView.append("[" + time + "] " + (usedModel != null ? usedModel.toUpperCase() : "LLAVA") + ": " + aiResponse + "\n\n");
+                    scrollToBottom();
+                    android.util.Log.d("CAMERA_RESULT", "✅ Message appended directly");
+                } else {
+                    android.util.Log.e("CAMERA_RESULT", "❌ chatHistoryView is null!");
+                    Toast.makeText(this, "Chat view not ready", Toast.LENGTH_SHORT).show();
+                }
+
+                saveCaptureToDatabase("📸 Photo", aiResponse, usedModel != null ? usedModel : "llava");
+            }
+        }
+    }*/
+
+    protected void onActivityResultOld(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
+            String aiResponse = data.getStringExtra("AI_CAPTURE_RESULT");
+            String usedModel = data.getStringExtra("AI_USED_MODEL");
+
+            if (aiResponse != null) {
+                Toast.makeText(this, "Received: " + aiResponse, Toast.LENGTH_LONG).show();
+
+                runOnUiThread(() -> {  // ← FIXED: Added the arrow and opening brace
+                    // 🔥 Use the static reference directly
+                    if (MainActivity.chatHistoryView != null) {
+                        String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                        MainActivity.chatHistoryView.append("\n[" + time + "] Me: 📸 Photo captured\n");
+                        MainActivity.chatHistoryView.append("[" + time + "] " + (usedModel != null ? usedModel.toUpperCase() : "LLAVA") + ": " + aiResponse + "\n\n");
+                        scrollToBottom();
+                        android.util.Log.d("CAMERA_RESULT", "✅ Message appended directly");
+                    } else {
+                        android.util.Log.e("CAMERA_RESULT", "❌ chatHistoryView is null!");
+                        Toast.makeText(this, "Chat view not ready", Toast.LENGTH_SHORT).show();
+                    }
+
+                    saveCaptureToDatabase("📸 Photo", aiResponse, usedModel != null ? usedModel : "llava");
+                }); // ← FIXED: Added the closing parenthesis and semicolon
+            }
+        }
+    }
+    //@Override
+    protected void onActivityResultOld3(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
+            String aiResponse = data.getStringExtra("AI_CAPTURE_RESULT");
+            String usedModel = data.getStringExtra("AI_USED_MODEL");
+
+            if (aiResponse != null) {
+                Toast.makeText(this, "LLaVA: " + aiResponse, Toast.LENGTH_LONG).show();
+
+                // 🔥 Send broadcast to ChatFragment
+                Intent broadcastIntent = new Intent("CAMERA_RESULT");
+                broadcastIntent.putExtra("result", aiResponse);
+                broadcastIntent.putExtra("model", usedModel != null ? usedModel : "LLAVA");
+                LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);
+
+                saveCaptureToDatabase("📸 Photo", aiResponse, usedModel != null ? usedModel : "llava");
+            }
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Case 1: Camera (already working)
+        if (requestCode == 100 && resultCode == Activity.RESULT_OK) {
+            String aiResponse = data.getStringExtra("AI_CAPTURE_RESULT");
+            String usedModel = data.getStringExtra("AI_USED_MODEL");
+            String avatarUsed = data.getStringExtra("avatar_used");
+
+            if (aiResponse != null) {
+                String finalAvatar = avatarUsed != null ? avatarUsed : "Default";
+                Toast.makeText(this, finalAvatar + " says: " + aiResponse, Toast.LENGTH_LONG).show();
+
+                SecretaryDbHelper dbHelper = new SecretaryDbHelper(this);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                ContentValues values = new ContentValues();
+
+                values.put("prompt", "📸 Photo captured");
+                values.put("response", aiResponse);
+                values.put("model_used", usedModel != null ? usedModel : "llava");
+                values.put("avatar_used", finalAvatar);
+                values.put("role", "Secretary");
+                values.put("tps", 0.0);
+                values.put("status", "STABLE");
+                values.put("custom_timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+
+                db.insert("chat_history", null, values);
+                db.close();
+
+                loadHistoryFromDatabase();
+                scrollToBottom();
+            }
+        }
+
+        // Case 2: PDF (request code 200)
+        if (requestCode == 200 && resultCode == RESULT_OK) {
+            Uri pdfUri = data.getData();
+            Toast.makeText(this, "📄 PDF selected!", Toast.LENGTH_LONG).show();
+
+            String fileName = pdfUri.toString();
+            if (fileName.contains("/")) {
+                fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            }
+
+            String pdfText = "📄 PDF selected: " + fileName +
+                    "\n\nA PDF file was selected for analysis. Please summarize what this PDF might contain.";
+
+            editMsg.setText(pdfText);
+            runAILogic(pdfText);
+        }
+
+        // Case 3: Video (request code 300)
+        if (requestCode == 300 && resultCode == RESULT_OK) {
+            Uri videoUri = data.getData();
+            Toast.makeText(this, "🎬 Video selected!", Toast.LENGTH_LONG).show();
+
+            String fileName = videoUri.toString();
+            if (fileName.contains("/")) {
+                fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            }
+
+            String videoText = "🎬 Video selected: " + fileName +
+                    "\n\nA video file was selected for analysis. Please describe what this video might be about.";
+
+            editMsg.setText(videoText);
+            runAILogic(videoText);
+        }
+    }
+
+    // Add this method to MainActivity
+    public static void receiveCameraResult(Context context, String result, String model, String avatar) {
+        // 🔥 Save directly to database using the provided context
+        SecretaryDbHelper dbHelper = new SecretaryDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put("prompt", "📸 Photo captured");
+        values.put("response", result);
+        values.put("model_used", model != null ? model : "llava");
+        values.put("avatar_used", avatar != null ? avatar : "Default");
+        values.put("role", "Secretary");
+        values.put("tps", 0.0);
+        values.put("status", "STABLE");
+        values.put("custom_timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+
+        db.insert("chat_history", null, values);
+        db.close();
+
+        android.util.Log.d("CAMERA_RESULT", "✅ Saved to database: " + result);
+    }
+
+    public static void refreshChatIfActive() {
+        // This will be called from the camera activity
+        // to update the chat view if the app is still open
+    }
+
+
+
+
+
+
+
+    private void fetchWebpage(String url) {
+        if (url == null) {
+            runOnUiThread(() -> {
+                Toast.makeText(this, "❌ No URL entered", Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
+
+        url = url.trim();
+        if (url.isEmpty()) {
+            runOnUiThread(() -> {
+                Toast.makeText(this, "❌ Please enter a valid URL", Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
+
+        // Force HTTPS
+        if (url.startsWith("http://")) {
+            url = url.replace("http://", "https://");
+        } else if (!url.startsWith("https://")) {
+            url = "https://" + url;
+        }
+
+        final String finalUrl = url;
+
+        android.util.Log.d("WEBPAGE", "🌐 Fetching: " + finalUrl);
+
+        runOnUiThread(() -> {
+            Toast.makeText(MainActivity.this, "🌐 Fetching: " + finalUrl, Toast.LENGTH_LONG).show();
+        });
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(finalUrl)
+                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(() -> {
+                    String errorMsg = "❌ Failed: " + e.getMessage();
+                    Toast.makeText(MainActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    appendToChat("\n❌ Webpage fetch failed: " + finalUrl + "\nError: " + e.getMessage() + "\n");
+                    android.util.Log.e("WEBPAGE", "Error: " + e.getMessage());
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (!response.isSuccessful()) {
+                    runOnUiThread(() -> {
+                        String errorMsg = "❌ HTTP Error: " + response.code();
+                        Toast.makeText(MainActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                        appendToChat("\n❌ Webpage error: " + response.code() + " - " + finalUrl + "\n");
+                    });
+                    return;
+                }
+
+                String html = response.body().string();
+
+                // Clean HTML
+                html = html.replaceAll("(?i)<script[^>]*>.*?</script>", " ");
+                html = html.replaceAll("(?i)<style[^>]*>.*?</style>", " ");
+                String text = html.replaceAll("<[^>]*>", " ");
+                text = text.replaceAll("\\s+", " ");
+                text = text.trim();
+
+                // 🔥 REMOVE WIKIPEDIA HEADERS AND CLUTTER
+                text = text.replaceAll("(?i)wikipedia.*?encyclopedia", " ");
+                text = text.replaceAll("(?i)jump to navigation", " ");
+                text = text.replaceAll("(?i)jump to search", " ");
+                text = text.replaceAll("(?i)from wikipedia, the free encyclopedia", " ");
+                text = text.replaceAll("(?i)wikimedia foundation", " ");
+                text = text.replaceAll("(?i)privacy policy", " ");
+                text = text.replaceAll("(?i)about wikipedia", " ");
+                text = text.replaceAll("(?i)disclaimers", " ");
+                text = text.replaceAll("(?i)contact wikipedia", " ");
+                text = text.replaceAll("(?i)code of conduct", " ");
+                text = text.replaceAll("(?i)developers", " ");
+                text = text.replaceAll("(?i)statistics", " ");
+                text = text.replaceAll("(?i)cookie statement", " ");
+                text = text.replaceAll("(?i)mobile view", " ");
+                text = text.replaceAll("\\[edit\\]", " ");
+                text = text.replaceAll("\\[\\d+\\]", " ");
+
+                // Remove "Contents" and table of contents numbers
+                text = text.replaceAll("(?i)contents", " ");
+                text = text.replaceAll("\\b[0-9]+\\s+[A-Z][a-z]+", " ");
+
+                // Remove short Wikipedia labels like "Etymology", "Description", etc.
+                text = text.replaceAll("(?i)\\b[a-z]{1,3}\\s*:\\s*[a-z]+\\b", " ");
+
+                // Clean up extra spaces
+                text = text.replaceAll("\\s+", " ");
+                text = text.trim();
+
+                // Limit length
+                if (text.length() > 3000) {
+                    text = text.substring(0, 3000) + "...";
+                }
+
+                String prompt = "Summarize this webpage content in a few sentences:\n\n" + text;
+                runOnUiThread(() -> {
+                    runAILogic(prompt);
+                });
+            }
+        });
+    }
+    private void extractPdfText(Uri pdfUri) {
+        // Get the file name - do this BEFORE the UI thread
+        String fileName = pdfUri.toString();
+        if (fileName.contains("/")) {
+            fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+        }
+        // If the file name is still too long, shorten it
+        if (fileName.length() > 50) {
+            fileName = fileName.substring(0, 50) + "...";
+        }
+
+        // Use the final variable inside the UI thread
+        final String finalFileName = fileName;  // ✅ Make it final for use in inner class
+
+        // Ask the user what they want to know
+        runOnUiThread(() -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("📄 PDF Selected");
+            builder.setMessage("PDF file: " + finalFileName + "\n\nWhat would you like to know about this PDF?");
+
+            EditText input = new EditText(this);
+            input.setHint("e.g., What is this PDF about?");
+            input.setTextColor(0xFF00FF41);
+            input.setBackgroundColor(0xFF1A1A1A);
+            builder.setView(input);
+
+            builder.setPositiveButton("Ask", (dialog, which) -> {
+                String question = input.getText().toString();
+                if (question.isEmpty()) {
+                    question = "What is this PDF about?";
+                }
+                String prompt = "📄 PDF file: " + finalFileName + "\n\nUser question: " + question;
+                runAILogic(prompt);
+            });
+            builder.setNegativeButton("Cancel", null);
+            builder.show();
+        });
+    }
+
+
 }//mainactivity end
+//2605200244 camera ollama llava to chahistoryview  worked

@@ -200,6 +200,27 @@
         android:padding="4dp"
         android:layout_alignParentBottom="true">
 
+        <!-- Inside the first LinearLayout in input_area -->
+        <ImageButton android:id="@+id/btn_camera"
+            android:layout_width="45dp" android:layout_height="45dp"
+            android:src="@android:drawable/ic_menu_camera"
+            android:background="@null" app:tint="#00FF41"/>
+
+        <ImageButton
+            android:id="@+id/btn_web"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:src="@android:drawable/ic_menu_share"
+            android:background="@null"
+            app:tint="#00FF41" />
+        <ImageButton
+            android:id="@+id/btn_pdf"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:background="@null"
+            app:tint="#00FF41" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
